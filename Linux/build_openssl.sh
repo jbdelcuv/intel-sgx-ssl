@@ -53,7 +53,7 @@ mkdir -p $SGXSSL_ROOT/package/lib64/
 # build openssl modules, clean previous openssl dir if it exist
 cd $SGXSSL_ROOT/../openssl_source || exit 1
 rm -rf $OPENSSL_VERSION
-tar xvf $OPENSSL_VERSION.tar.gz || exit 1
+tar xvf $OPENSSL_VERSION.tar.gz > /dev/null || exit 1
 
 # Remove AESBS to support only AESNI and VPAES
 sed -i '/BSAES_ASM/d' $OPENSSL_VERSION/Configure
@@ -82,9 +82,9 @@ fi
 
 if [[ "$*" == *"fips"* ]] ; then
 	ADDITIONAL_CONF+="-DSGXSSL_FIPS "
-	cp bss_file.c $OPENSSL_VERSION/crypto/bio/ || exit 1
-        cp conf_mod.c $OPENSSL_VERSION/crypto/conf/ || exit 1
-        cp o_fopen.c $OPENSSL_VERSION/crypto/ || exit 1
+    cp bss_file.c $OPENSSL_VERSION/crypto/bio/ || exit 1
+    cp conf_mod.c $OPENSSL_VERSION/crypto/conf/ || exit 1
+    cp o_fopen.c $OPENSSL_VERSION/crypto/ || exit 1
 fi
 
 # Mitigation flags
@@ -136,9 +136,11 @@ do
         ;;
     esac
 done
+echo Build Options
 echo $MITIGATION_OPT
 echo $MITIGATION_FLAGS
 echo $SPACE_OPT 
+echo "\$ADDITIONAL_CONF=$ADDITIONAL_CONF"
 
 sed -i -- 's/OPENSSL_issetugid/OPENSSLd_issetugid/g' $OPENSSL_VERSION/crypto/uid.c || exit 1
 cp rand_lib.c $OPENSSL_VERSION/crypto/rand/rand_lib.c || exit 1
