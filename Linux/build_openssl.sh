@@ -142,37 +142,6 @@ echo $MITIGATION_FLAGS
 echo $SPACE_OPT 
 echo "\$ADDITIONAL_CONF=$ADDITIONAL_CONF"
 
-# First, build the FIPS provider
-cd $SGXSSL_ROOT/../openssl_source || exit 1
-rm -rf $OPENSSL_VERSION-build-fips/ $OPENSSL_VERSION-install-fips/
-mkdir -p $OPENSSL_VERSION-build-fips
-mkdir -p $OPENSSL_VERSION-install-fips
-
-cd $OPENSSL_VERSION-build-fips
-../$OPENSSL_VERSION/Configure enable-fips --prefix=$SGXSSL_ROOT/../openssl_source/$OPENSSL_VERSION-install-fips
-make -j$(getconf _NPROCESSORS_ONLN) || exit 1
-make install_fips || exit 1
-
-FIPSMODULE="fips.so"
-FIPSMODULECONF="fipsmodule.cnf"
-INSTALLTOP="$SGXSSL_ROOT/../openssl_source/$OPENSSL_VERSION-install-fips"
-OPENSSLDIR="$INSTALLTOP/ssl"
-LIBDIR="lib64"
-MODULESDIR="$INSTALLTOP/$LIBDIR/ossl-modules"
-
-echo "*** Installing FIPS module"
-echo "install $FIPSMODULE -> $SGX_SDK/$LIBDIR/$FIPSMODULE"
-sudo cp "$MODULESDIR/$FIPSMODULE" "$SGX_SDK/$LIBDIR/$FIPSMODULE.new"
-sudo chmod 755 "$SGX_SDK/$LIBDIR/$FIPSMODULE.new"
-sudo mv -f "$SGX_SDK/$LIBDIR/$FIPSMODULE.new" "$SGX_SDK/$LIBDIR/$FIPSMODULE"
-
-echo "*** Installing FIPS module configuration"
-echo "install $FIPSMODULECONF -> $SGX_SDK/$LIBDIR/$FIPSMODULECONF"
-echo "module-filename = $SGX_SDK/$LIBDIR/$FIPSMODULE" >> "$OPENSSLDIR/$FIPSMODULECONF"
-sudo cp "$OPENSSLDIR/$FIPSMODULECONF" "$SGX_SDK/$LIBDIR/$FIPSMODULECONF"
-sudo chmod 744 "$SGX_SDK/$LIBDIR/$FIPSMODULECONF"
-
-# Second, build the crypto library for SGX-SSL
 cd $SGXSSL_ROOT/../openssl_source/ || exit 1
 sed -i -- 's/OPENSSL_issetugid/OPENSSLd_issetugid/g' $OPENSSL_VERSION/crypto/uid.c || exit 1
 cp rand_lib.c $OPENSSL_VERSION/crypto/rand/rand_lib.c || exit 1
