@@ -30,7 +30,7 @@
 #
 include ../Linux/sgx/buildenv.mk
 
-.PHONY: all clean install uninstall
+.PHONY: clean install uninstall
 
 CURRENT_DIR:=$(CURDIR)
 FIPSMODULE:=fips.so
@@ -41,6 +41,9 @@ OPENSSL_VERSION := $(shell ls *3.1.*.tar.gz | head -1 | grep -o '[^/]*$$' | sed 
 OSSL_FIPS_SOURCE_DIR := $(CURDIR)/$(OPENSSL_VERSION)-source-fips
 OSSL_FIPS_INSTALL_DIR := $(CURDIR)/$(OPENSSL_VERSION)-install-fips
 OSSL_FIPS_BUILD_DIR := $(CURDIR)/$(OPENSSL_VERSION)-build-fips
+
+OSSL_FIPS_BUILD_DIR_SET := $(shell test -d $(OSSL_FIPS_BUILD_DIR) && echo 1 || echo 0)
+OSSL_FIPS_INSTALL_DIR_SET := $(shell test -d $(OSSL_FIPS_INSTALL_DIR) && echo 1 || echo 0)
 
 BUILD_TARGET = fips
 
@@ -63,6 +66,9 @@ fips:
 
 # Install the FIPS provider and its configuration file in the SGX SDK location
 install:
+ifeq ($(OSSL_FIPS_INSTALL_DIR_SET), 0)
+	$(error "Missing directory : $(OSSL_FIPS_INSTALL_DIR). Have you built the FIPS module yet?")
+endif
 	@echo "*** Installing FIPS module"
 	@echo "install $(FIPSMODULE) -> $(SGX_SDK)/$(LIBDIR)/$(FIPSMODULE)"
 	cp -f $(OSSL_FIPS_INSTALL_DIR)/$(LIBDIR)/ossl-modules/$(FIPSMODULE) $(SGX_SDK)/$(LIBDIR)/$(FIPSMODULE).new
@@ -86,6 +92,14 @@ uninstall:
 	rm -rf $(SGX_SDK)/$(LIBDIR)/$(FIPSMODULECONF)
 
 clean:
+ifeq ($(OSSL_FIPS_BUILD_DIR_SET), 0)
+	$(error "Missing directory : $(OSSL_FIPS_BUILD_DIR). Have you built the FIPS module yet?")
+endif
 	@echo "*** Cleaning FIPS module"
 	cd $(OSSL_FIPS_BUILD_DIR) && $(MAKE) uninstall && $(MAKE) clean
+
+clean_all: clean
+	@rm -rf $(OSSL_FIPS_SOURCE_DIR)/
+	@rm -rf $(OSSL_FIPS_INSTALL_DIR)/
+	@rm -rf $(OSSL_FIPS_BUILD_DIR)/
 

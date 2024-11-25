@@ -63,9 +63,7 @@ clean:
 	rm -rf $(PACKAGE_LIB)/$(OPENSSL_LIB) $(PACKAGE_INC)/openssl/
 	rm -rf $(PACKAGE_LIB)/cve_2020_0551_load
 	rm -rf $(PACKAGE_LIB)/cve_2020_0551_cf
-ifeq ($(FIPS), 1)
 	$(MAKE) -C ../openssl_source/ clean
-endif
 
 test:
 	$(MAKE) -C sgx/ test
@@ -78,12 +76,8 @@ endif
 	mkdir -p $(DESTDIR)/include/
 	cp -prf $(PACKAGE_LIB)/*  $(DESTDIR)/lib64/
 	cp -prf $(PACKAGE_INC)/* $(DESTDIR)/include/
-ifeq ($(FIPS), 1)
 	$(MAKE) -C ../openssl_source/ install
-endif
 
 uninstall:
 	rm -rf $(DESTDIR)/
-ifeq ($(FIPS), 1)
 	$(MAKE) -C ../openssl_source/ uninstall
-endif
