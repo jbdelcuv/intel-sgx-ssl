@@ -96,3 +96,6 @@ clean:
 test: $(PACKAGE_LIB)/$(OPENSSL_LIB) all
 	$(MAKE) -C $(TEST_DIR) test 
 
+fips_test: $(PACKAGE_LIB)/$(OPENSSL_LIB) all
+	$(MAKE) -C $(FIPS_TEST_DIR) run
+
